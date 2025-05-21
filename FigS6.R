@@ -54,7 +54,8 @@ pt=0.5
 p1 = DimPlot(obj, label = F, reduction = 'umap',group.by = 'Timepoint', pt.size = pt,cols = my_color)
 ggsave("01_FigS6a.pdf",plot=p1, width = 7, height = 5)
 
-
+#FigS6b
+# cell composition l1 & l3
 
 #FigS6c
 load('/rsrch6/home/genomic_med/lwang22_lab/Xinmiao/02_MTAP_clinical_trial_remove_pt19/03_result/03_overview_data_230626/03_result_230731/01_data/00_obj_MTAP_neg_49161.Rdata')

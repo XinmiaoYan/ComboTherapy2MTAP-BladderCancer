@@ -32,7 +32,7 @@ dir = '15_Source_data'
 dir.create(dir)
 setwd(dir)
 
-dir = '01_All'
+dir = '01_Fig2'
 dir.create(dir)
 setwd(dir)
 
@@ -53,6 +53,234 @@ my_color = c('#9ccb86', #epi
 pt=0.5
 p1 = DimPlot(obj, label = F, reduction = 'umap',pt.size = pt,cols = my_color)
 ggsave("01_Fig2b.pdf",plot=p1, width = 7, height = 5)
+
+
+#Fig2c
+# cell composition
+
+
+
+
+
+#Fig2d-e
+### rank
+# load('/rsrch6/home/genomic_med/lwang22_lab/Xinmiao/02_MTAP_clinical_trial_remove_pt19/03_result/03_overview_data_230626/03_result_230731/02_result/03_level3/02_Fig3_baseline/00_object_l3_20375.Rdata')
+# object  #20375 l3
+load('/rsrch6/home/genomic_med/lwang22_lab/Xinmiao/02_MTAP_clinical_trial_remove_pt19/03_result/03_overview_data_230626/03_result_230731/02_result/02_level1/02_Fig3_baseline/00_object_20375.Rdata')
+object #l1
+table(object$level1_cell)
+
+obj_baseline = subset(object, subset = Timepoint == 'Baseline')
+obj = subset(obj, subset = Timepoint == 'Baseline')
+
+patient_list <- NULL  
+for (i in 1:11) {
+  element <- paste("Pt-", i, sep = "") 
+  patient_list = c(patient_list,element) 
+}
+print(patient_list) 
+
+clinical_df = object@meta.data[c('PatientID_v1','Biopsy site','Gender','Prior IO','BestResponse','Mixed Response','Clinical Benefit','PFS (months)')]
+clinical_info <- clinical_df[!duplicated(clinical_df$PatientID_v1), ]
+rownames(clinical_info)=NULL
+clinical_info <- column_to_rownames(clinical_info, var = "PatientID_v1")
+clinical_info = clinical_info[c('Biopsy site','Gender','Prior IO','BestResponse','Mixed Response','Clinical Benefit','PFS (months)')]
+colnames(clinical_info) = c('BiopsySite','Gender','PrioIO','BestResponse','MixedResponse','ClinicalBenefit','PFS(months)')
+clinical_info = clinical_info[patient_list,]
+
+# colnames(clinical_info) = c("BiopsySite", "Gender",  "PriorIO", "BestResponse", "MixedResponse","ClinicalBenefit") 
+annotation_colors <- list(
+  `BiopsySite` = c(`Lymph node` ='#deeaee', Bone='#b1cbbb', Lung='#eea29a',`Pelvic met` = '#c94c4c'),
+  Gender = c(Male = "#afc9e9", Female = "#ffb3d9"),
+  `PrioIO` = c(No = 'grey', Yes = '#82b74b'),
+  `MixedResponse` = c(No = 'grey', Yes = '#F5DF4D'),
+  BestResponse = c(PR = '#e06000', SD = '#ffab00',PD = '#D4E4F7'),
+  `ClinicalBenefit` = c(CB = '#FFD966',  `Non-CB`   = '#a8adb4')
+)
+
+
+dir = '01_All'
+dir.create(dir)
+setwd(dir)
+
+object
+
+cell_number = as.data.frame(cbind(table(object$PatientID_v1, object$level1_cell)))
+cell_number = cell_number[patient_list,]
+
+target_cell = as.data.frame(cbind(table(obj$PatientID_v1, obj$level4_cell)))
+target_cell = target_cell[patient_list,]
+cell_compisition = (target_cell)/rowSums(cell_number)
+cell_compisition = cell_compisition[,c('Mac_c0_APOE_CD163','Mac_c2_C1QC_MKI67')]
+
+
+cell_compisition
+# clinical_info = clinical_info[c('Biopsy site','Gender','Prior IO','BestResponse','Mixed Response','Clinical Benefit','PFS (months)')]
+# colnames(clinical_info) = c('BiopsySite','Gender','PrioIO','BestResponse','MixedResponse','ClinicalBenefit','PFS(months)')
+clinical_info$sample = rownames(clinical_info)
+identical(clinical_info$sample , rownames(cell_compisition))
+
+
+for(i in colnames(cell_compisition)){
+
+  dt1 = cell_compisition[i]
+  colnames(dt1) = 'CellProportion'
+
+  
+  data = cbind(clinical_info,dt1)
+  dt = data
+  dt = arrange(dt, desc(CellProportion), desc(sample))
+  dt$Patient = dt$sample
+  dt$Patient <- factor(dt$Patient, levels = rownames(dt))
+
+  df = dt
+  cell = i
+
+  for (j in colnames(df)[1:6]){
+  p = ggplot(df, aes(x=Patient, y=CellProportion, color = get(j))) +
+    geom_segment(aes(x=Patient, xend=Patient, y=0, yend=CellProportion)) +
+    geom_point(size=5,fill=alpha(0.9),alpha=0.9)  +
+    theme_light() + 
+    theme(
+      panel.grid.major.x = element_blank(),
+      panel.border = element_blank(),
+      axis.ticks.x = element_blank(),
+      text = element_text(size = 10)
+    ) +ggtitle(cell)+
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust= 1),
+              plot.title = element_text(hjust = 0.5))+
+    labs(x = NULL, y = "Proportion in all cells(%)") +
+    scale_color_manual(values = annotation_colors[[j]])+
+    labs(color = j) 
+  ggsave(plot =p, file = paste(cell, '_',j,'.pdf', sep=''), width = 4.5, height=4)
+  }
+
+}
+
+setwd('../')
+
+
+# Non-epithelial
+dir = '02_Non_Epi'
+dir.create(dir)
+setwd(dir)
+
+object = subset(object, subset =level1_cell =='Epithelial',invert = T )
+cell_number = as.data.frame(cbind(table(object$PatientID_v1, object$level1_cell)))
+cell_number = cell_number[patient_list,]
+
+target_cell = as.data.frame(cbind(table(obj$PatientID_v1, obj$level4_cell)))
+target_cell = target_cell[patient_list,]
+cell_compisition = (target_cell)/rowSums(cell_number)
+cell_compisition = cell_compisition[,c('Mac_c0_APOE_CD163','Mac_c2_C1QC_MKI67')]
+
+
+cell_compisition
+# clinical_info = clinical_info[c('Biopsy site','Gender','Prior IO','BestResponse','Mixed Response','Clinical Benefit','PFS (months)')]
+# colnames(clinical_info) = c('BiopsySite','Gender','PrioIO','BestResponse','MixedResponse','ClinicalBenefit','PFS(months)')
+clinical_info$sample = rownames(clinical_info)
+identical(clinical_info$sample , rownames(cell_compisition))
+
+
+for(i in colnames(cell_compisition)){
+
+  dt1 = cell_compisition[i]
+  colnames(dt1) = 'CellProportion'
+
+  
+  data = cbind(clinical_info,dt1)
+  dt = data
+  dt = arrange(dt, desc(CellProportion), desc(sample))
+  dt$Patient = dt$sample
+  dt$Patient <- factor(dt$Patient, levels = rownames(dt))
+
+  df = dt
+  cell = i
+
+  for (j in colnames(df)[1:6]){
+  p = ggplot(df, aes(x=Patient, y=CellProportion, color = get(j))) +
+    geom_segment(aes(x=Patient, xend=Patient, y=0, yend=CellProportion)) +
+    geom_point(size=5,fill=alpha(0.9),alpha=0.9)  +
+    theme_light() + 
+    theme(
+      panel.grid.major.x = element_blank(),
+      panel.border = element_blank(),
+      axis.ticks.x = element_blank(),
+      text = element_text(size = 10)
+    ) +ggtitle(cell)+
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust= 1),
+              plot.title = element_text(hjust = 0.5))+
+    labs(x = NULL, y = "Proportion in Non-epithelial cells(%)") +
+    scale_color_manual(values = annotation_colors[[j]])+
+    labs(color = j) 
+  ggsave(plot =p, file = paste(cell, '_',j,'.pdf', sep=''), width = 4.5, height=4)
+  }
+
+}
+
+
+setwd('../')
+
+
+# Non-epithelial
+dir = '03_Immune'
+dir.create(dir)
+setwd(dir)
+
+object = subset(object, subset =level1_cell %in% c('Endothelial','Fibroblasts'),invert = T )
+cell_number = as.data.frame(cbind(table(object$PatientID_v1, object$level1_cell)))
+cell_number = cell_number[patient_list,]
+target_cell = as.data.frame(cbind(table(obj$PatientID_v1, obj$level4_cell)))
+target_cell = target_cell[patient_list,]
+cell_compisition = (target_cell)/rowSums(cell_number)
+cell_compisition = cell_compisition[,c('Mac_c0_APOE_CD163','Mac_c2_C1QC_MKI67')]
+
+
+cell_compisition
+# clinical_info = clinical_info[c('Biopsy site','Gender','Prior IO','BestResponse','Mixed Response','Clinical Benefit','PFS (months)')]
+# colnames(clinical_info) = c('BiopsySite','Gender','PrioIO','BestResponse','MixedResponse','ClinicalBenefit','PFS(months)')
+clinical_info$sample = rownames(clinical_info)
+identical(clinical_info$sample , rownames(cell_compisition))
+
+
+for(i in colnames(cell_compisition)){
+
+  dt1 = cell_compisition[i]
+  colnames(dt1) = 'CellProportion'
+
+  
+  data = cbind(clinical_info,dt1)
+  dt = data
+  dt = arrange(dt, desc(CellProportion), desc(sample))
+  dt$Patient = dt$sample
+  dt$Patient <- factor(dt$Patient, levels = rownames(dt))
+
+  df = dt
+  cell = i
+
+  for (j in colnames(df)[1:6]){
+  p = ggplot(df, aes(x=Patient, y=CellProportion, color = get(j))) +
+    geom_segment(aes(x=Patient, xend=Patient, y=0, yend=CellProportion)) +
+    geom_point(size=5,fill=alpha(0.9),alpha=0.9)  +
+    theme_light() + 
+    theme(
+      panel.grid.major.x = element_blank(),
+      panel.border = element_blank(),
+      axis.ticks.x = element_blank(),
+      text = element_text(size = 10)
+    ) +ggtitle(cell)+
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust= 1),
+              plot.title = element_text(hjust = 0.5))+
+    labs(x = NULL, y = "Proportion in Immune cells(%)") +
+    scale_color_manual(values = annotation_colors[[j]])+
+    labs(color = j) 
+  ggsave(plot =p, file = paste(cell, '_',j,'.pdf', sep=''), width = 4.5, height=4)
+  }
+
+}
+
+setwd('../')
+
 
 
 #FigS2f-g
