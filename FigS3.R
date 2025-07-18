@@ -54,7 +54,6 @@ d1 = DotPlot(obj, features = unique(annotation_gene), cluster.idents = F) +
   FontSize(x.text = 9, main = 12)+labs(x=NULL, y=NULL)
 ggsave("01_FigS3a.pdf",plot=d1, width = 8, height = 2.5)
 
-
 library(Seurat)
 library(dplyr)
 library(Matrix)
