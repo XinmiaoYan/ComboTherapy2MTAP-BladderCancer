@@ -125,7 +125,6 @@ for(i in seq(1,length(names(MPs)),1)){
 }
 
 
-
 dt = obj@meta.data[,c('level4_cell','Timepoint','BestResponse','Clinical Benefit','BestResponse_Group',names(MPs))]
 
 for (i in seq_along(MPs)) {
