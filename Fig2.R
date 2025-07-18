@@ -54,14 +54,8 @@ pt=0.5
 p1 = DimPlot(obj, label = F, reduction = 'umap',pt.size = pt,cols = my_color)
 ggsave("01_Fig2b.pdf",plot=p1, width = 7, height = 5)
 
-
 #Fig2c
 # cell composition
-
-
-
-
-
 #Fig2d-e
 ### rank
 # load('/rsrch6/home/genomic_med/lwang22_lab/Xinmiao/02_MTAP_clinical_trial_remove_pt19/03_result/03_overview_data_230626/03_result_230731/02_result/03_level3/02_Fig3_baseline/00_object_l3_20375.Rdata')
