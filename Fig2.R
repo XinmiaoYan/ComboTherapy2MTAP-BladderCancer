@@ -92,7 +92,6 @@ annotation_colors <- list(
   `ClinicalBenefit` = c(CB = '#FFD966',  `Non-CB`   = '#a8adb4')
 )
 
-
 dir = '01_All'
 dir.create(dir)
 setwd(dir)

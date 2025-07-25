@@ -111,7 +111,6 @@ Antigen_Presentation = c('CD74',
 "HLA-DPA1", "HLA-DPB1","HLA-DMA", "HLA-DMB"
 ) # PMID: 30215098
 
-
 # Create annotation dataframe
 annotation_gene <- data.frame(
   gene = c(A2A_BR_M2_genes,

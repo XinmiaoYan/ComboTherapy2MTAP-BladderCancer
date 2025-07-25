@@ -202,7 +202,6 @@ ggsave("02_dp_clusters.pdf",plot=d1, width = 14, height = 2.5)
 
 setwd('../')
 
-
 dir = '06_Fib'
 dir.create(dir)
 setwd(dir)
